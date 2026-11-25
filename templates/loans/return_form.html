@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Registrar devolución | Préstamos UNCP{% endblock %}
+{% block content %}
+<section class="page-heading" data-reveal><div><h1>Registrar devolución</h1><p class="page-intro">{{ loan.equipment.name }} · {{ loan.equipment.code }} · {{ loan.borrower.get_full_name }}</p></div></section>
+<form method="post" class="form-card narrow-form" data-reveal>
+  {% csrf_token %}
+  {% include "partials/form_fields.html" %}
+  <div class="form-actions"><button class="button button-blue" type="submit">Confirmar devolución <span aria-hidden="true">↗</span></button><a class="button button-light" href="{% url 'loans:loan_list' %}">Cancelar</a></div>
+</form>
+{% endblock %}

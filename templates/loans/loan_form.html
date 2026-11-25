@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Solicitar equipo | Préstamos UNCP{% endblock %}
+{% block content %}
+<section class="page-heading" data-reveal><div><h1>Solicitar equipo</h1><p class="page-intro">Elige un equipo operativo y confirma las fechas de uso.</p></div><a class="text-link" href="{% url 'loans:equipment_list' %}">Volver al inventario</a></section>
+<div class="form-layout">
+  <form method="post" class="form-card" data-reveal>
+    {% csrf_token %}
+    {% include "partials/form_fields.html" %}
+    <div class="form-actions"><button class="button button-blue" type="submit">Registrar solicitud <span aria-hidden="true">↗</span></button><a class="button button-light" href="{% url 'loans:loan_list' %}">Cancelar</a></div>
+  </form>
+  <aside class="form-aside" data-reveal>
+    <h2>Ten en cuenta</h2>
+    <ul class="plain-list"><li>Máximo 3 préstamos activos por docente.</li><li>La devolución debe programarse después del préstamo.</li><li>Solo se prestan equipos operativos y con stock disponible.</li><li>Las observaciones se guardan como texto sin etiquetas HTML.</li></ul>
+  </aside>
+</div>
+{% endblock %}

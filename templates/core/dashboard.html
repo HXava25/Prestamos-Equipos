@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Panel de préstamos | UNCP{% endblock %}
+{% block content %}
+<section class="dashboard-hero" data-reveal>
+  <div><h1>Hola, {{ user.first_name|default:user.username }}.</h1><p>Un vistazo a los equipos y préstamos de laboratorio.</p></div>
+  <a class="button button-coral" href="{% url 'loans:equipment_list' %}">Explorar equipos <span aria-hidden="true">↗</span></a>
+</section>
+
+<section class="dashboard-metrics" aria-label="Indicadores del sistema">
+  <article class="dashboard-metric metric-blue" data-reveal><span>Unidades inventariadas</span><strong>{{ equipment_count }}</strong><small>{{ equipment_type_count }} tipos de equipo</small></article>
+  <article class="dashboard-metric metric-coral" data-reveal><span>Unidades disponibles</span><strong>{{ available_equipment }}</strong><small>En estado operativo</small></article>
+  <article class="dashboard-metric metric-dark" data-reveal><span>Préstamos activos</span><strong>{{ active_loan_count }}</strong><small>{{ overdue_count }} fuera de fecha</small></article>
+  {% if user.role == "admin" %}
+    <article class="dashboard-metric metric-paper" data-reveal><span>Solicitudes registradas</span><strong>{{ loan_count }}</strong><small>Historial del sistema</small></article>
+  {% endif %}
+</section>
+
+<section class="dashboard-grid">
+  <div class="dashboard-main">
+    <div class="section-heading" data-reveal>
+      <div><h2>Próximas devoluciones</h2></div>
+      <a class="text-link" href="{% url 'loans:loan_list' %}">Ver préstamos <span aria-hidden="true">↗</span></a>
+    </div>
+    <div class="table-wrap" data-reveal>
+      <table class="data-table">
+        <thead><tr><th>Equipo</th><th>Responsable</th><th>Devolución</th><th>Estado</th></tr></thead>
+        <tbody>
+          {% for loan in recent_loans %}
+            <tr><td><strong>{{ loan.equipment.name }}</strong><small>{{ loan.equipment.code }} · {{ loan.equipment.laboratory }}</small></td><td>{{ loan.borrower.get_full_name|default:loan.borrower.username }}</td><td>{{ loan.due_date|date:"j M Y" }}</td><td>{% if loan.overdue_days %}<span class="status status-unavailable">{{ loan.overdue_days }} d. de retraso</span>{% else %}<span class="status status-ready">En plazo</span>{% endif %}</td></tr>
+          {% empty %}
+            <tr><td class="empty-cell" colspan="4">No hay préstamos activos que mostrar.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <aside class="dashboard-aside" data-reveal>
+    <div class="stock-panel">
+      <div class="stock-heading"><div><h3>Equipos disponibles</h3></div><a class="stock-mark" href="{% url 'loans:equipment_list' %}" aria-label="Abrir inventario">↗</a></div>
+      {% for equipment in low_stock %}
+        <div class="stock-row"><span><strong>{{ equipment.name }}</strong><small>{{ equipment.code }} · {{ equipment.laboratory }}</small></span><span class="stock-value">{{ equipment.available_quantity }}<small> disp.</small></span></div>
+      {% empty %}
+        <p class="muted-copy">Agrega equipos para consultar existencias.</p>
+      {% endfor %}
+    </div>
+  </aside>
+</section>
+{% endblock %}

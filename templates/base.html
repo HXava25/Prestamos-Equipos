@@ -1,0 +1,71 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#2436ff">
+  <meta name="description" content="Sistema de gestión de préstamos de equipos de laboratorio de la Universidad Nacional del Centro del Perú.">
+  <title>{% block title %}Préstamos de equipos | UNCP{% endblock %}</title>
+  <link rel="icon" type="image/svg+xml" href="{% static 'favicon.svg' %}">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Saltar al contenido</a>
+  <header class="site-header">
+    <a class="brand-lockup" href="{% url 'loans:equipment_list' %}" aria-label="Préstamos de equipos de la UNCP, inicio">
+      <span class="brand-seal" aria-hidden="true">UNCP</span>
+      <span class="brand-copy"><strong>Préstamos de equipos</strong><small>Universidad Nacional del Centro del Perú</small></span>
+    </a>
+    <nav class="site-nav" aria-label="Navegación principal">
+      {% for item in navigation_links %}
+        <a class="nav-link{% if request.path == item.url %} is-active{% endif %}" href="{{ item.url }}">{{ item.label }}</a>
+      {% endfor %}
+      {% if request.user.is_authenticated and request.user.is_staff %}
+        <a class="nav-link nav-admin" href="{% url 'admin:index' %}">Administración</a>
+      {% endif %}
+    </nav>
+    <div class="header-account">
+      {% if request.user.is_authenticated %}
+        <span class="account-name">{{ request.user.first_name|default:request.user.username }}<small>{{ request.user.get_role_display }}</small></span>
+        <form method="post" action="{% url 'accounts:logout' %}">
+          {% csrf_token %}
+          <button class="header-action header-action-quiet" type="submit">Salir</button>
+        </form>
+      {% else %}
+        <a class="header-action" href="{% url 'accounts:login' %}">Ingresar <span aria-hidden="true">↗</span></a>
+      {% endif %}
+    </div>
+  </header>
+  <main class="page-content" id="main-content">
+    {% if messages %}
+      <div class="message-stack" aria-live="polite">
+        {% for message in messages %}
+          <div class="message message-{{ message.tags }}">
+            <span>{{ message }}</span>
+            <button type="button" class="message-close" aria-label="Cerrar mensaje">×</button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="site-footer">
+    <div class="footer-brand"><span class="brand-seal" aria-hidden="true">UNCP</span><span><strong>Préstamos de equipos</strong><small>Universidad Nacional del Centro del Perú · Huancayo</small></span></div>
+    <details class="image-credits">
+      <summary>Créditos de imágenes</summary>
+      <ul>
+        <li><a href="https://commons.wikimedia.org/wiki/File:ARDX_-_Arduino_Experimentation_Kit_(Inside_the_box).jpg" rel="license">Kit ARDX de Arduino</a>, oomlout, CC BY-SA 2.0.</li>
+        <li><a href="https://www.flickr.com/photos/159630537@N08/42342826561" rel="license">Microscopio</a>, Homedust, CC BY 2.0.</li>
+        <li><a href="https://stocksnap.io/photo/macbook-laptop-UNB7V2H5L4" rel="license">Laptop</a>, Negative Space, CC0.</li>
+        <li><a href="https://commons.wikimedia.org/wiki/File:OHP-sch.JPG" rel="license">Proyector de transparencias</a>, mailer_diablo, CC BY-SA 3.0.</li>
+      </ul>
+      <p>Las fotografías son referenciales; no representan los equipos identificados por los códigos patrimoniales del inventario.</p>
+    </details>
+  </footer>
+  <script src="{% static 'js/app.js' %}" defer></script>
+</body>
+</html>

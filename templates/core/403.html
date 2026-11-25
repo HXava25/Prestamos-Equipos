@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Acceso restringido | Préstamos UNCP{% endblock %}
+{% block content %}
+<section class="error-page" data-reveal>
+  <h1>Esta información no está en tu alcance.</h1>
+  <p>Tu cuenta no tiene permiso para esta acción. Contacta con la administración del sistema si necesitas acceso.</p>
+  <a class="button button-blue" href="{% url 'loans:equipment_list' %}">Volver al inventario <span aria-hidden="true">↗</span></a>
+</section>
+{% endblock %}

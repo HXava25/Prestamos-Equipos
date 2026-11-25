@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Reportes de préstamos | UNCP{% endblock %}
+{% block content %}
+<section class="page-heading" data-reveal><div><h1>Reportes de préstamos</h1><p class="page-intro">Consulta la demanda por laboratorio y el historial de uso por docente.</p></div><a class="button button-blue" href="{% url 'admin:loans_loan_changelist' %}">Abrir administración <span aria-hidden="true">↗</span></a></section>
+<section class="metric-grid report-metrics" data-reveal>
+  <article class="metric-card"><div class="metric-top"><span>Préstamos registrados</span></div><strong>{{ loan_count }}</strong><small>Solicitudes históricas</small></article>
+  <article class="metric-card metric-primary"><div class="metric-top"><span>Préstamos activos</span></div><strong>{{ active_count }}</strong><small>Equipos fuera del laboratorio</small></article>
+  <article class="metric-card"><div class="metric-top"><span>Vencidos</span></div><strong>{{ overdue_count }}</strong><small>Requieren seguimiento</small></article>
+</section>
+<section class="report-columns">
+  <div data-reveal><div class="section-heading"><div><h2>Actividad por laboratorio</h2></div></div>
+    <div class="table-wrap"><table class="data-table"><thead><tr><th>Laboratorio</th><th>Préstamos</th><th>Unidades</th><th>Vencidos</th></tr></thead><tbody>{% for row in by_laboratory %}<tr><td><strong>{{ row.equipment__laboratory }}</strong></td><td>{{ row.loans }}</td><td>{{ row.units }}</td><td>{% if row.overdue %}<span class="status status-danger">{{ row.overdue }}</span>{% else %}0{% endif %}</td></tr>{% empty %}<tr><td colspan="4" class="empty-cell">Todavía no hay préstamos registrados.</td></tr>{% endfor %}</tbody></table></div>
+  </div>
+  <div data-reveal><div class="section-heading"><div><h2>Uso por docente</h2></div></div>
+    <div class="table-wrap"><table class="data-table"><thead><tr><th>Docente</th><th>Préstamos</th><th>Activos</th></tr></thead><tbody>{% for row in by_borrower %}<tr><td><strong>{{ row.borrower__first_name }} {{ row.borrower__last_name }}</strong><small>{{ row.borrower__username }}</small></td><td>{{ row.loans }}</td><td>{{ row.active }}</td></tr>{% empty %}<tr><td colspan="3" class="empty-cell">No hay personas con préstamos.</td></tr>{% endfor %}</tbody></table></div>
+  </div>
+</section>
+{% endblock %}

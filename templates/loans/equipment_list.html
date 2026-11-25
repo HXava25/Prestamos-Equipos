@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Sistema de gestión de préstamos de equipos | UNCP{% endblock %}
+{% block content %}
+<section class="catalog-hero" aria-labelledby="catalog-title">
+  <div class="hero-field hero-field-paper" aria-hidden="true"></div>
+  <div class="hero-field hero-field-blue" aria-hidden="true"></div>
+  <div class="hero-copy">
+    <h1 class="poster-title" id="catalog-title"><span class="poster-line"><span>Préstamos de</span></span><span class="poster-line"><span>equipos UNCP</span></span></h1>
+    <p class="hero-support">Equipos de laboratorio para tus prácticas, proyectos e investigación. Revisa existencias y solicita desde aquí.</p>
+    <a class="hero-link" href="#inventario">Explorar el inventario <span aria-hidden="true">↓</span></a>
+  </div>
+  <div class="hero-stats" aria-label="Resumen del inventario">
+    <div><strong>{{ equipment_type_count }}</strong><span>equipos registrados</span></div>
+    <div><strong>{{ available_units }}</strong><span>unidades disponibles</span></div>
+    <div><strong>{{ laboratories|length }}</strong><span>laboratorios</span></div>
+  </div>
+</section>
+<section class="visual-index" aria-label="Referencias de equipos de laboratorio">
+  <div class="visual-index-heading"><h2>Aprender haciendo.</h2><p>Imágenes de referencia; el inventario se identifica por su código patrimonial.</p></div>
+  <div class="equipment-gallery">
+    <figure class="gallery-frame gallery-laptop" data-reveal><img src="{% static 'images/laptop-jpg.jpg' %}" width="960" height="640" alt="Laptop abierta sobre una mesa de trabajo" loading="lazy" decoding="async"><figcaption>Tecnología</figcaption></figure>
+    <figure class="gallery-frame gallery-arduino" data-reveal><img src="{% static 'images/arduino-kit-jpg.jpg' %}" width="1280" height="853" alt="Kit de experimentación electrónica con placa Arduino y componentes" loading="lazy" decoding="async"><figcaption>Electrónica</figcaption></figure>
+    <figure class="gallery-frame gallery-microscope" data-reveal><img src="{% static 'images/microscope-jpg.jpg' %}" width="1024" height="678" alt="Detalle de los objetivos de un microscopio" loading="lazy" decoding="async"><figcaption>Instrumentación</figcaption></figure>
+    <figure class="gallery-frame gallery-projector" data-reveal><img src="{% static 'images/projector-jpg.jpg' %}" width="1280" height="960" alt="Proyector de transparencias preparado en un aula" loading="lazy" decoding="async"><figcaption>Proyección</figcaption></figure>
+  </div>
+</section>
+<section class="inventory-section" id="inventario">
+  <div class="inventory-heading" data-reveal>
+    <div><h2>Busca por código.</h2></div>
+    <p>Consulta unidades disponibles, laboratorio y estado antes de enviar tu solicitud.</p>
+  </div>
+  <form class="inventory-filters" method="get" action="{% url 'loans:equipment_list' %}" data-reveal>
+    <label class="search-field"><span class="sr-only">Buscar equipo por código, nombre o categoría</span><input type="search" name="q" value="{{ query }}" placeholder="Busca un equipo o código, por ejemplo LAB-005"></label>
+    <label><span class="sr-only">Filtrar por laboratorio</span><select name="laboratorio"><option value="">Todos los laboratorios</option>{% for lab in laboratories %}<option value="{{ lab }}" {% if selected_laboratory == lab %}selected{% endif %}>{{ lab }}</option>{% endfor %}</select></label>
+    <label><span class="sr-only">Filtrar por categoría</span><select name="categoria"><option value="">Todas las categorías</option>{% for category in categories %}<option value="{{ category }}" {% if selected_category == category %}selected{% endif %}>{{ category }}</option>{% endfor %}</select></label>
+    <label><span class="sr-only">Filtrar por estado</span><select name="estado"><option value="">Todos los estados</option>{% for value,label in equipment.model.Status.choices %}<option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+    <button class="button button-blue" type="submit">Buscar equipos <span aria-hidden="true">↗</span></button>
+  </form>
+  <div class="inventory-results">
+    <div class="equipment-grid">
+      {% for item in equipment %}
+        <article class="equipment-card{% cycle ' equipment-card-blue' ' equipment-card-coral' ' equipment-card-dark' ' equipment-card-white' %}" data-reveal>
+          <div class="equipment-card-main">
+            <h3>{{ item.name }}</h3>
+            <p class="stock-number"><strong>{{ item.available_quantity }}</strong><span>de {{ item.quantity }} disponibles</span></p>
+            <div class="equipment-meta">
+              <span class="asset-code">{{ item.code }}</span>
+              <span class="status {% if item.status == 'operativo' and item.available_quantity %}status-ready{% elif item.status == 'mantenimiento' %}status-maintenance{% else %}status-unavailable{% endif %}">{{ item.get_status_display }}</span>
+            </div>
+            <p class="equipment-category">{{ item.category }} · {{ item.laboratory }}</p>
+            {% if item.brand %}<p class="equipment-model">{{ item.brand }} {{ item.model_name }}</p>{% endif %}
+          </div>
+          <div class="equipment-card-bottom">
+            {% if item.status == "operativo" and item.available_quantity %}
+              {% if request.user.is_authenticated %}
+                <form class="equipment-action-form" method="get" action="{% url 'loans:loan_create' %}">
+                  <input type="hidden" name="equipo" value="{{ item.pk }}">
+                  <button class="card-action" type="submit">Solicitar equipo <span aria-hidden="true">↗</span></button>
+                </form>
+              {% else %}
+                <form class="equipment-action-form" method="get" action="{% url 'accounts:login' %}">
+                  <input type="hidden" name="next" value="{% url 'loans:loan_create' %}?equipo={{ item.pk }}">
+                  <button class="card-action" type="submit">Ingresar para solicitar <span aria-hidden="true">↗</span></button>
+                </form>
+              {% endif %}
+            {% else %}
+              <span class="card-unavailable">Sin unidades disponibles</span>
+            {% endif %}
+          </div>
+        </article>
+      {% empty %}
+        <div class="inventory-empty"><h3>No hay equipos con esos filtros.</h3><p>Prueba otra búsqueda o restablece los filtros.</p><a class="button button-blue" href="{% url 'loans:equipment_list' %}">Ver todo el inventario</a></div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+<section class="loan-steps" aria-labelledby="steps-title">
+  <div class="steps-copy"><h2 id="steps-title">Pide el equipo.</h2><p>El equipo queda bajo responsabilidad de quien realiza la solicitud. Respeta las fechas y comunica cualquier daño al personal del laboratorio.</p></div>
+  <ol class="steps-list">
+    <li data-reveal><div><h3>Elige por código</h3><p>Confirma que el estado sea operativo y haya unidades disponibles.</p></div></li>
+    <li data-reveal><div><h3>Indica tus fechas</h3><p>Ingresa con tu cuenta institucional y registra el período de uso.</p></div></li>
+    <li data-reveal><div><h3>Devuelve en laboratorio</h3><p>Un asistente registra la devolución y la condición del equipo.</p></div></li>
+  </ol>
+</section>
+{% endblock %}
